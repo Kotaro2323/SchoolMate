@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f7fb">
+<title>SchoolMate v2</title>
+<style>
+:root{--blue:#4169e1;--ink:#17233b;--muted:#71809a;--line:#e6ebf3;--bg:#f4f7fb;--white:#fff;--green:#16845b;--red:#c34b5a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:22px 18px 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{font-size:24px;font-weight:850;letter-spacing:-.7px}.brand span{color:var(--blue)}.date{color:var(--muted);font-size:13px}
+h1{font-size:26px;margin:8px 0 4px}.sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 5px 18px #23395b08}.card h2{font-size:16px;margin:0 0 14px}.next{background:linear-gradient(130deg,#eaf0ff,#f5f8ff);border-color:#dce6ff}.eyebrow{font-size:11px;letter-spacing:1px;color:var(--blue);font-weight:800}.nextname{font-size:27px;font-weight:850;margin:8px 0}.meta{font-size:13px;color:var(--muted)}.count{font-size:19px;font-weight:800;margin-top:12px;color:var(--blue)}
+.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;color:#52617a;padding:9px 14px;border-radius:11px;font-weight:700;white-space:nowrap;cursor:pointer}.tab.active{background:var(--blue);border-color:var(--blue);color:white}
+.list{display:flex;flex-direction:column;gap:9px}.item{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid var(--line);border-radius:12px}.time{font-size:12px;color:var(--muted);min-width:88px}.subject{font-weight:700;font-size:14px;flex:1}.room{font-size:12px;color:var(--muted)}.pill{font-size:11px;border-radius:20px;padding:5px 9px;background:#edf2ff;color:#3559c7}
+.task,.pack{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.task:last-child,.pack:last-child{border:0}.task input,.pack input{width:18px;height:18px;accent-color:var(--blue)}.due{margin-left:auto;color:var(--muted);font-size:11px}.done{text-decoration:line-through;color:#9aa5b5}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.btn{border:0;background:var(--blue);color:white;border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px;cursor:pointer}.btn.secondary{background:#edf1f8;color:#35435c}.btn.small{padding:7px 10px;font-size:12px}.btn.danger{background:#fff0f1;color:var(--red)}
+.section{margin-top:16px}.empty{color:var(--muted);font-size:13px;padding:10px 0}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin:-5px 0 12px}
+.material-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.material-row:last-child{border:0}.material-row span{flex:1;font-size:13px}
+.modal{position:fixed;inset:0;background:#15213b66;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}.modal.show{display:flex}.dialog{background:white;border-radius:18px;padding:20px;width:min(440px,100%);max-height:88vh;overflow:auto}.dialog h3{margin:0 0 14px}.field{display:flex;flex-direction:column;gap:6px;margin:12px 0;font-size:13px;font-weight:700}.field input,.field select{padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:400}.dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+footer{text-align:center;color:#9aa5b5;font-size:11px;margin-top:25px}
+@media(max-width:760px){.wrap{padding:17px 13px 36px}.grid{grid-template-columns:1fr}.top{align-items:flex-start}.brand{font-size:22px}h1{font-size:23px}.card{padding:15px}.time{min-width:76px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">School<span>Mate</span> <small style="font-size:11px;color:#91a0b8">v2</small></div><div class="date" id="today"></div></header>
+<h1>今日も、いい一日に。</h1><p class="sub">授業・課題・持ち物をまとめてチェックしよう。</p>
+<main class="grid">
+<section class="card next"><div class="eyebrow">NEXT CLASS</div><div class="nextname" id="nextName">時間割を読み込み中…</div><div class="meta" id="nextMeta"></div><div class="count" id="countdown"></div></section>
+<section class="card"><h2>今日の課題</h2><div id="tasks"></div><div class="actions"><button class="btn small" onclick="openTask()">＋ 課題を追加</button></div></section>
+<section class="card"><h2>時間割</h2><div class="tabs" id="dayTabs"></div><div class="list" id="schedule"></div><div class="actions"><button class="btn secondary small" onclick="openClass()">＋ 授業を追加</button><button class="btn secondary small" onclick="editClass()">授業を編集</button></div></section>
+<section class="card"><h2>今日の持ち物</h2><p class="hint">今日の時間割に登録された授業ごとの持ち物を自動でまとめています。</p><div id="packing"></div><div class="actions"><button class="btn secondary small" onclick="resetPack()">チェックをリセット</button></div></section>
+<section class="card" style="grid-column:1/-1"><h2>授業ごとの持ち物を登録</h2><p class="hint">授業を選び、その授業で毎回必要な教科書・ノートなどを登録できます。今日の持ち物に自動反映されます。</p><div class="field"><label for="classSelect">授業を選択</label><select id="classSelect" onchange="renderMaterials()"></select></div><div id="materials"></div><div class="actions"><button class="btn small" onclick="addMaterial()">＋ 持ち物を登録</button></div></section>
+</main>
+<footer>SchoolMate v2 • 試作版<br>データはこのブラウザ内に保存されます。</footer>
+</div>
+<div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle">入力</h3><div id="modalBody"></div><div class="dialog-actions"><button class="btn secondary" onclick="closeModal()">キャンセル</button><button class="btn" id="modalSave">保存</button></div></div></div>
+<script>
+const KEY='schoolmate-v2';
+const days=['日','月','火','水','木','金','土'];
+const seed={
+ classes:[
+ {id:1,day:1,start:'08:50',end:'09:40',name:'現代文',room:'2年3組',materials:['現代文の教科書','ノート']},
+ {id:2,day:1,start:'09:50',end:'10:40',name:'数学Ⅱ',room:'2年3組',materials:['数学の教科書','数学の問題集']},
+ {id:3,day:1,start:'10:50',end:'11:40',name:'英語',room:'LL教室',materials:['英語の教科書','英単語帳']},
+ {id:4,day:1,start:'12:40',end:'13:30',name:'化学',room:'理科室',materials:['化学の教科書','実験ノート']},
+ {id:5,day:1,start:'13:40',end:'14:30',name:'体育',room:'体育館',materials:['体育着','体育館シューズ']},
+ {id:6,day:2,start:'08:50',end:'09:40',name:'数学Ⅱ',room:'2年3組',materials:['数学の教科書','数学の問題集']},
+ {id:7,day:2,start:'09:50',end:'10:40',name:'地理',room:'2年3組',materials:['地図帳','地理の資料集']},
+ {id:8,day:3,start:'08:50',end:'09:40',name:'英語',room:'LL教室',materials:['英語の教科書','英単語帳']},
+ {id:9,day:4,start:'08:50',end:'09:40',name:'化学',room:'理科室',materials:['化学の教科書','実験ノート']},
+ {id:10,day:5,start:'08:50',end:'09:40',name:'体育',room:'体育館',materials:['体育着','体育館シューズ']}
+ ],
+ tasks:[{id:1,name:'数学ワーク p.24〜27',due:'今日',done:false},{id:2,name:'英単語小テストの勉強',due:'明日',done:false}],
+ checks:{}
+};
+let data;try{data=JSON.parse(localStorage.getItem(KEY))||seed}catch(e){data=seed}
+let selectedDay=(new Date().getDay()||1);if(selectedDay>5)selectedDay=1;
+let saveAction=()=>{};
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function mins(t){let [h,m]=t.split(':').map(Number);return h*60+m}
+function todayLabel(){return new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'})}
+function todaysClasses(){return data.classes.filter(c=>c.day===new Date().getDay()).sort((a,b)=>mins(a.start)-mins(b.start))}
+function render(){
+ document.getElementById('today').textContent=todayLabel();
+ const now=new Date(), n=now.getHours()*60+now.getMinutes(), todays=todaysClasses();
+ const next=todays.find(x=>mins(x.end)>n), nn=document.getElementById('nextName'),nm=document.getElementById('nextMeta'),cd=document.getElementById('countdown');
+ if(next){nn.textContent=next.name;nm.textContent=`${next.start}〜${next.end} ・ ${next.room}`;let diff=mins(next.start)-n;if(n>=mins(next.start)&&n<mins(next.end))cd.textContent='授業中';else cd.textContent=`開始まであと ${diff} 分`;}
+ else{nn.textContent='今日の授業は終了！';nm.textContent=todays.length?'おつかれさまでした':'今日の時間割はまだ登録されていません';cd.textContent='';}
+ document.getElementById('dayTabs').innerHTML=['月','火','水','木','金'].map((d,i)=>`<button class="tab ${selectedDay===i+1?'active':''}" onclick="selectedDay=${i+1};render()">${d}</button>`).join('');
+ const dayClasses=data.classes.filter(c=>c.day===selectedDay).sort((a,b)=>mins(a.start)-mins(b.start));
+ document.getElementById('schedule').innerHTML=dayClasses.map(c=>`<div class="item"><div class="time">${c.start}–${c.end}</div><div class="subject">${esc(c.name)}</div><div class="room">${esc(c.room)}</div></div>`).join('')||'<div class="empty">この曜日の授業はありません</div>';
+ document.getElementById('tasks').innerHTML=data.tasks.map((x,i)=>`<label class="task"><input type="checkbox" ${x.done?'checked':''} onchange="toggleTask(${i})"><span class="${x.done?'done':''}">${esc(x.name)}</span><span class="due">${esc(x.due||'')}</span></label>`).join('')||'<div class="empty">課題はありません</div>';
+ const seen=new Set(), materials=[];todays.forEach(c=>(c.materials||[]).forEach(m=>{if(!seen.has(m)){seen.add(m);materials.push(m)}}));
+ document.getElementById('packing').innerHTML=materials.map((m,i)=>{let k=new Date().toISOString().slice(0,10)+'_'+m;return `<label class="pack"><input type="checkbox" ${data.checks[k]?'checked':''} onchange="togglePack('${encodeURIComponent(k)}')"><span class="${data.checks[k]?'done':''}">${esc(m)}</span></label>`}).join('')||'<div class="empty">今日の授業に登録された持ち物はありません</div>';
+ const sel=document.getElementById('classSelect'),old=sel.value;sel.innerHTML=data.classes.slice().sort((a,b)=>a.day-b.day||mins(a.start)-mins(b.start)).map(c=>`<option value="${c.id}">${days[c.day]}曜 ${c.start} ${esc(c.name)}</option>`).join('');if(data.classes.some(c=>String(c.id)===old))sel.value=old;renderMaterials();
+}
+function renderMaterials(){let id=Number(document.getElementById('classSelect').value),c=data.classes.find(x=>x.id===id);document.getElementById('materials').innerHTML=c?(c.materials||[]).map((m,i)=>`<div class="material-row"><span>${esc(m)}</span><button class="btn danger small" onclick="removeMaterial(${c.id},${i})">削除</button></div>`).join('')||'<div class="empty">持ち物が未登録です</div>':'<div class="empty">先に授業を登録してください</div>'}
+function toggleTask(i){data.tasks[i].done=!data.tasks[i].done;save();render()}
+function togglePack(k){k=decodeURIComponent(k);data.checks[k]=!data.checks[k];save();render()}
+function resetPack(){let prefix=new Date().toISOString().slice(0,10)+'_';Object.keys(data.checks).forEach(k=>{if(k.startsWith(prefix))delete data.checks[k]});save();render()}
+function modal(title,body,onSave){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;saveAction=onSave;document.getElementById('modalSave').onclick=()=>{if(saveAction())closeModal()};document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function openTask(){modal('課題を追加',`<label class="field">課題名<input id="fName" placeholder="例：数学ワーク p.30"></label><label class="field">提出期限<input id="fDue" placeholder="例：明日、11/25"></label>`,()=>{let name=document.getElementById('fName').value.trim();if(!name){alert('課題名を入力してね');return false}data.tasks.push({id:Date.now(),name,due:document.getElementById('fDue').value.trim(),done:false});save();render();return true})}
+function openClass(){modal('授業を追加',`<label class="field">曜日<select id="fDay">${['月','火','水','木','金'].map((d,i)=>`<option value="${i+1}" ${selectedDay===i+1?'selected':''}>${d}曜日</option>`).join('')}</select></label><label class="field">科目名<input id="fName" placeholder="例：数学Ⅱ"></label><label class="field">開始時刻<input id="fStart" type="time" value="08:50"></label><label class="field">終了時刻<input id="fEnd" type="time" value="09:40"></label><label class="field">教室<input id="fRoom" placeholder="例：2年3組"></label>`,()=>{let name=document.getElementById('fName').value.trim(),start=document.getElementById('fStart').value,end=document.getElementById('fEnd').value;if(!name||!start||!end){alert('科目名と時刻を入力してね');return false}data.classes.push({id:Date.now(),day:Number(document.getElementById('fDay').value),name,start,end,room:document.getElementById('fRoom').value.trim(),materials:[]});selectedDay=Number(document.getElementById('fDay').value);save();render();return true})}
+function editClass(){let c=data.classes.find(x=>x.day===selectedDay);if(!c){alert('この曜日に授業がありません');return}let id=Number(prompt('編集・削除する授業の番号を入力してください：\\n'+data.classes.filter(x=>x.day===selectedDay).map(x=>`${x.id}: ${x.name}`).join('\\n'),c.id));let item=data.classes.find(x=>x.id===id);if(!item)return;let action=prompt(`${item.name} の操作：\\n1 = 科目名・教室を変更\\n2 = この授業を削除`,'1');if(action==='2'){if(confirm('この授業を削除しますか？'))data.classes=data.classes.filter(x=>x.id!==id)}else if(action==='1'){let name=prompt('科目名',item.name);if(name===null)return;let room=prompt('教室',item.room);if(room===null)return;item.name=name;item.room=room}save();render()}
+function addMaterial(){let c=data.classes.find(x=>x.id===Number(document.getElementById('classSelect').value));if(!c){alert('先に授業を登録してね');return}let m=prompt(`${c.name}で必要な持ち物を入力してね`);if(!m||!m.trim())return;c.materials=c.materials||[];c.materials.push(m.trim());save();render()}
+function removeMaterial(id,i){let c=data.classes.find(x=>x.id===id);if(c){c.materials.splice(i,1);save();render()}}
+render();setInterval(render,30000);
+</script>
+</body></html>
